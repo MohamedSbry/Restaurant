@@ -1,0 +1,116 @@
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "restaurant";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+$conn->set_charset("utf8");
+
+if ($conn->connect_error) {
+    die("فشل الاتصال: " . $conn->connect_error);
+}
+
+$result = $conn->query("SELECT * FROM menu_items");
+
+?>
+
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة الطعام</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .menu-item .item-description {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .menu-item .item-description p {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>قائمة الطعام</h1>
+        <nav>
+            <a href="index.html">الرئيسية</a>
+            <a href="about.html">من نحن</a>
+            <a href="menu.php">القائمة</a>
+            <a href="reservation.php">احجز طاولة</a>
+            <a href="contact.html">اتصل بنا</a>
+        </nav>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" onkeyup="searchMenu()" placeholder="ابحث عن صنف...">
+    </div>
+
+    <div class="filter-buttons">
+        <button onclick="filterMenu('all')">الكل</button>
+        <button onclick="filterMenu('trays')">صواني</button>
+        <button onclick="filterMenu('main')">أطباق رئيسية</button>
+        <button onclick="filterMenu('mahshi')">محاشي</button>
+        <button onclick="filterMenu('rice')">ارز</button>
+        <button onclick="filterMenu('casserole')">طواجن</button>
+        <button onclick="filterMenu('salads')">سلطات</button>
+    </div>
+
+    <div class="menu-card">
+        <?php while ($row = $result->fetch_assoc()): ?>
+            <div class="menu-item <?= htmlspecialchars($row['category']) ?>">
+                <img src="<?= htmlspecialchars($row['image_path']) ?>" alt="<?= htmlspecialchars($row['name']) ?>">
+                <div class="item-description">
+                    <p><?= htmlspecialchars($row['name']) ?></p>
+                    <p><?= htmlspecialchars($row['description']) ?></p>
+                    <p>السعر: <?= htmlspecialchars($row['price']) ?> جنيه</p>
+                    <button class="order-btn" onclick="window.location.href='reservation.php'">اطلب الآن</button>
+                </div>
+            </div>
+        <?php endwhile; ?>
+    </div>
+
+    <script>
+        let currentFilter = 'all';
+
+        function filterMenu(category) {
+            currentFilter = category;
+            applyFilters();
+        }
+
+        function searchMenu() {
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const items = document.querySelectorAll('.menu-item');
+
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                const matchesText = text.includes(input);
+                const matchesCategory = currentFilter === 'all' || item.classList.contains(currentFilter);
+
+                if (matchesText && matchesCategory) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    </script>
+    <footer>
+        <p>&copy; 2025 مطعمنا. جميع الحقوق محفوظة.</p>
+    </footer>
+    <?php $conn->close(); ?>
+</body>
+
+</html>
